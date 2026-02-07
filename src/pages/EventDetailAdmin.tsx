@@ -82,7 +82,7 @@ export function EventDetailAdmin() {
     };
 
     const copyPublicLink = () => {
-        const publicUrl = `${window.location.origin}/gallery/${id}`;
+        const publicUrl = `${window.location.origin}${window.location.pathname}#/gallery/${id}`;
         navigator.clipboard.writeText(publicUrl);
         alert('Lien copié dans le presse-papier !');
     };
@@ -128,7 +128,7 @@ export function EventDetailAdmin() {
                         <Share2 size={18} className="mr-2" />
                         Partager
                     </Button>
-                    <Button onClick={() => window.open(`/gallery/${id}`, '_blank')}>
+                    <Button onClick={() => window.open(`${window.location.origin}${window.location.pathname}#/gallery/${id}`, '_blank')}>
                         <ExternalLink size={18} className="mr-2" />
                         Voir la galerie
                     </Button>
