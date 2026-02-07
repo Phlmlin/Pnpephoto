@@ -96,12 +96,12 @@ export function PhotoViewer({
             )}
 
             {/* Image */}
-            <div className="max-w-7xl max-h-[80vh] w-full h-full flex items-center justify-center p-20">
+            <div className="max-w-7xl max-h-[85vh] md:max-h-[80vh] w-full h-full flex items-center justify-center p-4 md:p-10 lg:p-20">
                 {currentUrl ? (
                     <img
                         src={currentUrl}
                         alt={currentPhoto?.filename}
-                        className="max-w-full max-h-full object-contain rounded-lg"
+                        className="max-w-full max-h-full object-contain rounded-lg shadow-2xl"
                     />
                 ) : (
                     <Loader size={48} />

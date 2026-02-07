@@ -83,27 +83,27 @@ export function AdminDashboard() {
 
     return (
         <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h2 className="text-3xl font-display font-bold text-white mb-2">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
+                <div className="space-y-1">
+                    <h2 className="text-2xl md:text-3xl font-display font-bold text-white">
                         Événements
                     </h2>
-                    <p className="text-white/70">
+                    <p className="text-white/70 text-sm md:text-base">
                         Gérez vos événements et leurs galeries photos
                     </p>
                 </div>
-                <div className="flex items-center gap-3">
-                    <div className="relative flex-1 md:w-64">
+                <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-3">
+                    <div className="relative flex-1 sm:w-64">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40" size={18} />
                         <input
                             type="text"
-                            placeholder="Rechercher un événement..."
+                            placeholder="Rechercher..."
                             className="w-full pl-10 pr-4 py-2 rounded-lg glass text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all duration-300"
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
                     </div>
-                    <Button onClick={() => setShowCreateForm(!showCreateForm)}>
+                    <Button onClick={() => setShowCreateForm(!showCreateForm)} className="shrink-0">
                         <Plus size={20} className="mr-2" />
                         Nouveau
                     </Button>

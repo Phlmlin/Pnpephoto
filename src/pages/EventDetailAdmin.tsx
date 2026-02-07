@@ -101,16 +101,16 @@ export function EventDetailAdmin() {
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                    <Button variant="ghost" onClick={() => navigate('/admin')}>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div className="flex items-center gap-3">
+                    <Button variant="ghost" size="sm" onClick={() => navigate('/admin')} className="shrink-0">
                         <ArrowLeft size={20} />
                     </Button>
-                    <div>
-                        <h2 className="text-3xl font-display font-bold text-white">
+                    <div className="min-w-0">
+                        <h2 className="text-2xl md:text-3xl font-display font-bold text-white truncate">
                             {event.name}
                         </h2>
-                        <p className="text-white/70">
+                        <p className="text-white/70 text-sm">
                             {new Date(event.date).toLocaleDateString('fr-FR', {
                                 day: 'numeric',
                                 month: 'long',
@@ -119,18 +119,18 @@ export function EventDetailAdmin() {
                         </p>
                     </div>
                 </div>
-                <div className="flex gap-3">
-                    <Button variant="secondary" onClick={() => event && downloadAllPhotosAsZip(event.id, event.name)} disabled={photos.length === 0}>
-                        <Download size={18} className="mr-2" />
-                        Tout télécharger
+                <div className="flex flex-wrap gap-2 lg:gap-3">
+                    <Button variant="secondary" size="sm" className="flex-1 sm:flex-none" onClick={() => event && downloadAllPhotosAsZip(event.id, event.name)} disabled={photos.length === 0}>
+                        <Download size={18} className="mr-1 md:mr-2" />
+                        <span className="text-xs md:text-sm">Tout télécharger</span>
                     </Button>
-                    <Button variant="secondary" onClick={copyPublicLink}>
-                        <Share2 size={18} className="mr-2" />
-                        Partager
+                    <Button variant="secondary" size="sm" className="flex-1 sm:flex-none" onClick={copyPublicLink}>
+                        <Share2 size={18} className="mr-1 md:mr-2" />
+                        <span className="text-xs md:text-sm">Partager</span>
                     </Button>
-                    <Button onClick={() => window.open(`${window.location.origin}${window.location.pathname}#/gallery/${id}`, '_blank')}>
-                        <ExternalLink size={18} className="mr-2" />
-                        Voir la galerie
+                    <Button size="sm" className="w-full sm:w-auto" onClick={() => window.open(`${window.location.origin}${window.location.pathname}#/gallery/${id}`, '_blank')}>
+                        <ExternalLink size={18} className="mr-1 md:mr-2" />
+                        <span className="text-xs md:text-sm">Galerie publique</span>
                     </Button>
                 </div>
             </div>

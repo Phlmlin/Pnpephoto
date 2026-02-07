@@ -83,10 +83,10 @@ export function PublicGallery() {
                         })}
                     </div>
                     {event.description && (
-                        <p className="text-white/60 mt-4">{event.description}</p>
+                        <p className="text-white/60 mt-4 text-sm md:text-base max-w-2xl mx-auto">{event.description}</p>
                     )}
-                    <div className="flex items-center justify-center text-white/50 text-sm mt-4 gap-4">
-                        <div className="flex items-center">
+                    <div className="flex flex-wrap items-center justify-center text-white/50 text-xs md:text-sm mt-6 gap-x-6 gap-y-3">
+                        <div className="flex items-center shrink-0">
                             <ImageIcon size={16} className="mr-2" />
                             {photos.length} photo{photos.length > 1 ? 's' : ''}
                         </div>
@@ -94,7 +94,7 @@ export function PublicGallery() {
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-white/70 hover:text-white"
+                                className="text-white/70 hover:text-white h-auto py-1 shrink-0"
                                 onClick={() => event && downloadAllPhotosAsZip(event.id, event.name)}
                             >
                                 <Download size={16} className="mr-2" />

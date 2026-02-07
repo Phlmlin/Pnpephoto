@@ -17,7 +17,7 @@ export function AdminLayout() {
         <div className="min-h-screen">
             <header className="glass border-b border-white/10">
                 <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-                    <h1 className="text-2xl font-display font-bold text-gradient">
+                    <h1 className="text-lg md:text-2xl font-display font-bold text-gradient truncate mr-4">
                         PNPE Galerie - Admin
                     </h1>
                     <Button variant="ghost" size="sm" onClick={handleLogout}>
