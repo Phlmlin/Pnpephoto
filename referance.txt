@@ -1,0 +1,1054 @@
+<!doctype html>
+<html lang="fr" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PNPE Galerie Photos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&amp;family=Inter:wght@300;400;500;600&amp;display=swap" rel="stylesheet">
+  <style>
+    body {
+      box-sizing: border-box;
+    }
+    .font-display { font-family: 'Playfair Display', serif; }
+    .font-body { font-family: 'Inter', sans-serif; }
+    
+    .gradient-bg {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    }
+    
+    .card-glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #e94560 0%, #ff6b6b 100%);
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(233, 69, 96, 0.3);
+    }
+    
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+    
+    @media (max-width: 640px) {
+      .photo-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+      }
+    }
+    
+    .photo-item {
+      position: relative;
+      aspect-ratio: 1;
+      overflow: hidden;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+    .photo-item:hover {
+      transform: scale(1.02);
+    }
+    .photo-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .modal-overlay {
+      background: rgba(0, 0, 0, 0.95);
+      backdrop-filter: blur(20px);
+    }
+    
+    .toast {
+      animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+    }
+    @keyframes slideIn {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    @keyframes fadeOut {
+      from { opacity: 1; }
+      to { opacity: 0; }
+    }
+    
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.1);
+      border-top-color: #e94560;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .fade-in {
+      animation: fadeIn 0.5s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    input[type="file"] {
+      display: none;
+    }
+    
+    .upload-zone {
+      border: 2px dashed rgba(233, 69, 96, 0.5);
+      transition: all 0.3s ease;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: #e94560;
+      background: rgba(233, 69, 96, 0.1);
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="h-full gradient-bg font-body text-white overflow-auto">
+  <div id="app" class="h-full w-full flex flex-col"><!-- Login Screen -->
+   <div id="login-screen" class="h-full flex items-center justify-center p-4">
+    <div class="card-glass rounded-2xl p-8 w-full max-w-md fade-in">
+     <div class="text-center mb-8">
+      <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-rose-500 to-orange-400 flex items-center justify-center">
+       <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+       </svg>
+      </div>
+      <h1 id="login-title" class="font-display text-3xl font-bold mb-2">PNPE Galerie</h1>
+      <p class="text-gray-400">Espace Administrateur</p>
+     </div>
+     <form id="login-form" class="space-y-4">
+      <div><label for="admin-password" class="block text-sm font-medium text-gray-300 mb-2">Mot de passe</label> <input type="password" id="admin-password" class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-rose-500 transition-colors" placeholder="Entrez le mot de passe">
+      </div><button type="submit" class="w-full btn-primary text-white font-semibold py-3 rounded-xl"> Connexion </button>
+      <p id="login-error" class="text-rose-400 text-sm text-center hidden">Mot de passe incorrect</p>
+     </form>
+     <div class="mt-6 pt-6 border-t border-white/10 text-center">
+      <p class="text-gray-400 text-sm">Vous avez un lien d'événement ?</p><button id="goto-public" class="text-rose-400 hover:text-rose-300 text-sm font-medium mt-1"> Accéder à la galerie publique → </button>
+     </div>
+    </div>
+   </div><!-- Admin Dashboard -->
+   <div id="admin-dashboard" class="h-full flex flex-col hidden"><!-- Header -->
+    <header class="bg-black/20 border-b border-white/10 px-4 py-4 flex-shrink-0">
+     <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+       <div class="w-10 h-10 rounded-full bg-gradient-to-br from-rose-500 to-orange-400 flex items-center justify-center">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+       </div>
+       <h1 id="admin-title" class="font-display text-xl font-semibold">PNPE Galerie</h1>
+      </div><button id="logout-btn" class="text-gray-400 hover:text-white transition-colors flex items-center gap-2">
+       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+       </svg><span class="hidden sm:inline">Déconnexion</span> </button>
+     </div>
+    </header><!-- Main Content -->
+    <main class="flex-1 overflow-auto p-4">
+     <div class="max-w-7xl mx-auto"><!-- Stats & Actions -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+       <div class="card-glass rounded-xl p-4">
+        <p class="text-gray-400 text-sm">Événements</p>
+        <p id="stat-events" class="text-2xl font-bold mt-1">0</p>
+       </div>
+       <div class="card-glass rounded-xl p-4">
+        <p class="text-gray-400 text-sm">Photos</p>
+        <p id="stat-photos" class="text-2xl font-bold mt-1">0</p>
+       </div>
+       <div class="col-span-2 lg:col-span-2 flex gap-2"><button id="new-event-btn" class="flex-1 btn-primary rounded-xl py-3 px-4 font-semibold flex items-center justify-center gap-2">
+         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+         </svg> Nouvel Événement </button>
+       </div>
+      </div><!-- Search & Filters -->
+      <div class="card-glass rounded-xl p-4 mb-6">
+       <div class="flex flex-col sm:flex-row gap-3">
+        <div class="flex-1 relative">
+         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+         </svg><input type="text" id="search-events" class="w-full pl-10 pr-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-rose-500" placeholder="Rechercher un événement...">
+        </div><input type="date" id="filter-date" class="px-4 py-2 rounded-lg bg-white/10 border border-white/20 text-white focus:outline-none focus:border-rose-500">
+       </div>
+      </div><!-- Events List -->
+      <div id="events-list" class="space-y-4"><!-- Events will be rendered here -->
+      </div><!-- Empty State -->
+      <div id="empty-state" class="card-glass rounded-xl p-12 text-center hidden">
+       <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
+        <svg class="w-10 h-10 text-gray-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg>
+       </div>
+       <h3 class="font-display text-xl font-semibold mb-2">Aucun événement</h3>
+       <p class="text-gray-400 mb-4">Créez votre premier événement pour commencer à partager vos photos</p><button id="empty-new-event" class="btn-primary px-6 py-2 rounded-xl font-medium"> Créer un événement </button>
+      </div>
+     </div>
+    </main><!-- Footer -->
+    <footer class="bg-black/20 border-t border-white/10 px-4 py-3 text-center text-gray-400 text-sm flex-shrink-0"><span id="admin-footer">© PNPE - Tous droits réservés</span>
+    </footer>
+   </div><!-- Event Detail View -->
+   <div id="event-detail" class="h-full flex flex-col hidden"><!-- Header -->
+    <header class="bg-black/20 border-b border-white/10 px-4 py-4 flex-shrink-0">
+     <div class="max-w-7xl mx-auto flex items-center justify-between"><button id="back-to-dashboard" class="flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
+       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+       </svg> Retour </button>
+      <div class="flex gap-2"><button id="copy-link-btn" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2 text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+        </svg><span class="hidden sm:inline">Copier le lien</span> </button> <button id="delete-event-btn" class="px-4 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors flex items-center gap-2 text-sm">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg><span class="hidden sm:inline">Supprimer</span> </button>
+      </div>
+     </div>
+    </header><!-- Event Info -->
+    <div class="bg-black/10 px-4 py-6 flex-shrink-0">
+     <div class="max-w-7xl mx-auto">
+      <h1 id="event-title" class="font-display text-2xl sm:text-3xl font-bold mb-2">Nom de l'événement</h1>
+      <div class="flex flex-wrap items-center gap-4 text-gray-400 text-sm"><span id="event-date" class="flex items-center gap-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg> Date </span> <span id="event-photo-count" class="flex items-center gap-1">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        </svg> 0 photos </span>
+      </div>
+      <p id="event-description" class="text-gray-300 mt-3"></p>
+     </div>
+    </div><!-- Upload Zone -->
+    <div class="px-4 py-4 flex-shrink-0">
+     <div class="max-w-7xl mx-auto"><label for="photo-upload" class="upload-zone rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer">
+       <svg class="w-10 h-10 text-rose-500 mb-2" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+       </svg><p class="text-white font-medium">Cliquez pour ajouter des photos</p><p class="text-gray-400 text-sm mt-1">ou glissez-déposez vos fichiers ici</p></label> <input type="file" id="photo-upload" accept="image/*" multiple>
+     </div>
+    </div><!-- Photos Grid -->
+    <main class="flex-1 overflow-auto px-4 pb-4">
+     <div class="max-w-7xl mx-auto">
+      <div id="photos-grid" class="photo-grid"><!-- Photos will be rendered here -->
+      </div>
+      <div id="no-photos" class="card-glass rounded-xl p-12 text-center hidden">
+       <p class="text-gray-400">Aucune photo dans cet événement</p>
+      </div>
+     </div>
+    </main>
+   </div><!-- Public Gallery View -->
+   <div id="public-gallery" class="h-full flex flex-col hidden"><!-- Header -->
+    <header class="bg-black/20 border-b border-white/10 px-4 py-4 flex-shrink-0">
+     <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+       <div class="w-10 h-10 rounded-full bg-gradient-to-br from-rose-500 to-orange-400 flex items-center justify-center">
+        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+       </div>
+       <h1 id="public-title" class="font-display text-xl font-semibold">PNPE Galerie</h1>
+      </div><button id="goto-admin" class="text-gray-400 hover:text-white transition-colors text-sm"> Admin → </button>
+     </div>
+    </header><!-- Event Info -->
+    <div class="bg-black/10 px-4 py-6 flex-shrink-0">
+     <div class="max-w-7xl mx-auto text-center">
+      <h1 id="public-event-title" class="font-display text-2xl sm:text-3xl font-bold mb-2">Événement</h1>
+      <p id="public-event-date" class="text-gray-400 mb-2"></p>
+      <p id="public-event-description" class="text-gray-300"></p>
+      <p id="public-event-count" class="text-rose-400 font-medium mt-3"></p>
+     </div>
+    </div><!-- Photos Grid -->
+    <main class="flex-1 overflow-auto px-4 pb-4">
+     <div class="max-w-7xl mx-auto">
+      <div id="public-photos-grid" class="photo-grid"><!-- Photos will be rendered here -->
+      </div>
+      <div id="public-no-photos" class="card-glass rounded-xl p-12 text-center">
+       <p class="text-gray-400">Aucune photo disponible</p>
+      </div>
+     </div>
+    </main><!-- Footer -->
+    <footer class="bg-black/20 border-t border-white/10 px-4 py-3 text-center text-gray-400 text-sm flex-shrink-0"><span id="public-footer">© PNPE - Tous droits réservés</span>
+    </footer>
+   </div><!-- New Event Modal -->
+   <div id="new-event-modal" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
+    <div class="card-glass rounded-2xl p-6 w-full max-w-md fade-in">
+     <div class="flex items-center justify-between mb-6">
+      <h2 class="font-display text-xl font-semibold">Nouvel Événement</h2><button id="close-modal" class="text-gray-400 hover:text-white transition-colors">
+       <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+       </svg></button>
+     </div>
+     <form id="event-form" class="space-y-4">
+      <div><label for="event-name-input" class="block text-sm font-medium text-gray-300 mb-2">Nom de l'événement *</label> <input type="text" id="event-name-input" required class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-rose-500" placeholder="Ex: Cérémonie officielle">
+      </div>
+      <div><label for="event-date-input" class="block text-sm font-medium text-gray-300 mb-2">Date *</label> <input type="date" id="event-date-input" required class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white focus:outline-none focus:border-rose-500">
+      </div>
+      <div><label for="event-desc-input" class="block text-sm font-medium text-gray-300 mb-2">Description</label> <textarea id="event-desc-input" rows="3" class="w-full px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-rose-500 resize-none" placeholder="Description de l'événement..."></textarea>
+      </div><button type="submit" id="submit-event" class="w-full btn-primary text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2"> <span>Créer l'événement</span>
+       <div id="submit-spinner" class="spinner hidden"></div></button>
+     </form>
+    </div>
+   </div><!-- Photo Viewer Modal -->
+   <div id="photo-viewer" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center"><button id="close-viewer" class="absolute top-4 right-4 text-white/70 hover:text-white transition-colors z-10">
+     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+     </svg></button> <button id="prev-photo" class="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white transition-colors z-10">
+     <svg class="w-10 h-10" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+     </svg></button> <button id="next-photo" class="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white transition-colors z-10">
+     <svg class="w-10 h-10" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+     </svg></button> <img id="viewer-image" class="max-w-full max-h-full object-contain" src="" alt="">
+    <div class="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-3"><button id="download-photo" class="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/20 transition-colors flex items-center gap-2 text-sm">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+      </svg> Télécharger </button> <button id="delete-photo" class="px-4 py-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors flex items-center gap-2 text-sm admin-only hidden">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+      </svg> Supprimer </button>
+    </div>
+   </div><!-- Delete Confirmation -->
+   <div id="delete-confirm" class="fixed inset-0 modal-overlay z-50 hidden flex items-center justify-center p-4">
+    <div class="card-glass rounded-2xl p-6 w-full max-w-sm text-center fade-in">
+     <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-red-500/20 flex items-center justify-center">
+      <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+      </svg>
+     </div>
+     <h3 class="font-display text-xl font-semibold mb-2">Confirmer la suppression</h3>
+     <p id="delete-message" class="text-gray-400 mb-6">Êtes-vous sûr de vouloir supprimer cet élément ?</p>
+     <div class="flex gap-3"><button id="cancel-delete" class="flex-1 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition-colors"> Annuler </button> <button id="confirm-delete" class="flex-1 px-4 py-2 rounded-xl bg-red-500 hover:bg-red-600 transition-colors flex items-center justify-center gap-2"> <span>Supprimer</span>
+       <div id="delete-spinner" class="spinner hidden"></div></button>
+     </div>
+    </div>
+   </div><!-- Toast Container -->
+   <div id="toast-container" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2"></div>
+  </div>
+  <script>
+    // Default configuration
+    const defaultConfig = {
+      app_title: 'PNPE Galerie Photos',
+      welcome_text: 'Bienvenue sur notre galerie',
+      footer_text: '© PNPE - Tous droits réservés',
+      background_color: '#1a1a2e',
+      surface_color: '#16213e',
+      text_color: '#ffffff',
+      primary_color: '#e94560',
+      secondary_color: '#ff6b6b',
+      font_family: 'Inter',
+      font_size: 16
+    };
+
+    // App state
+    let allData = [];
+    let currentEventId = null;
+    let currentPhotoIndex = 0;
+    let currentPhotos = [];
+    let isAdmin = false;
+    let deleteTarget = null;
+    let config = { ...defaultConfig };
+
+    // Admin password (in production, this would be server-side)
+    const ADMIN_PASSWORD = 'pnpe2024';
+
+    // DOM Elements
+    const screens = {
+      login: document.getElementById('login-screen'),
+      admin: document.getElementById('admin-dashboard'),
+      eventDetail: document.getElementById('event-detail'),
+      publicGallery: document.getElementById('public-gallery')
+    };
+
+    // Utility functions
+    function generateId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString('fr-FR', { 
+        day: 'numeric', 
+        month: 'long', 
+        year: 'numeric' 
+      });
+    }
+
+    function showToast(message, type = 'success') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = `toast px-4 py-3 rounded-xl ${type === 'success' ? 'bg-green-500' : 'bg-red-500'} text-white font-medium shadow-lg`;
+      toast.textContent = message;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    function showScreen(screenName) {
+      Object.values(screens).forEach(s => s.classList.add('hidden'));
+      screens[screenName].classList.remove('hidden');
+    }
+
+    function getEvents() {
+      return allData.filter(item => item.type === 'event');
+    }
+
+    function getPhotos(eventId) {
+      return allData.filter(item => item.type === 'photo' && item.event_id === eventId);
+    }
+
+    function updateStats() {
+      const events = getEvents();
+      const photos = allData.filter(item => item.type === 'photo');
+      document.getElementById('stat-events').textContent = events.length;
+      document.getElementById('stat-photos').textContent = photos.length;
+    }
+
+    // Render events list
+    function renderEventsList(filter = '') {
+      const eventsList = document.getElementById('events-list');
+      const emptyState = document.getElementById('empty-state');
+      const dateFilter = document.getElementById('filter-date').value;
+      
+      let events = getEvents();
+      
+      // Apply filters
+      if (filter) {
+        events = events.filter(e => 
+          e.event_name.toLowerCase().includes(filter.toLowerCase())
+        );
+      }
+      if (dateFilter) {
+        events = events.filter(e => e.event_date === dateFilter);
+      }
+      
+      // Sort by date descending
+      events.sort((a, b) => new Date(b.event_date) - new Date(a.event_date));
+      
+      if (events.length === 0) {
+        eventsList.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      
+      emptyState.classList.add('hidden');
+      
+      eventsList.innerHTML = events.map(event => {
+        const photos = getPhotos(event.event_id);
+        const thumbnail = photos[0]?.photo_url || '';
+        
+        return `
+          <div class="card-glass rounded-xl overflow-hidden cursor-pointer hover:bg-white/10 transition-colors event-card" data-event-id="${event.event_id}">
+            <div class="flex">
+              <div class="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 bg-white/5">
+                ${thumbnail ? 
+                  `<img src="${thumbnail}" class="w-full h-full object-cover" loading="lazy" alt="${event.event_name}">` :
+                  `<div class="w-full h-full flex items-center justify-center">
+                    <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                  </div>`
+                }
+              </div>
+              <div class="flex-1 p-4">
+                <h3 class="font-display font-semibold text-lg mb-1">${event.event_name}</h3>
+                <p class="text-gray-400 text-sm mb-2">${formatDate(event.event_date)}</p>
+                <div class="flex items-center gap-4 text-sm">
+                  <span class="text-rose-400">${photos.length} photo${photos.length !== 1 ? 's' : ''}</span>
+                </div>
+              </div>
+              <div class="p-4 flex items-center">
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      // Add click handlers
+      document.querySelectorAll('.event-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const eventId = card.dataset.eventId;
+          openEventDetail(eventId);
+        });
+      });
+    }
+
+    // Open event detail
+    function openEventDetail(eventId) {
+      currentEventId = eventId;
+      const event = getEvents().find(e => e.event_id === eventId);
+      
+      if (!event) return;
+      
+      document.getElementById('event-title').textContent = event.event_name;
+      document.getElementById('event-date').innerHTML = `
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        ${formatDate(event.event_date)}
+      `;
+      document.getElementById('event-description').textContent = event.event_description || '';
+      
+      renderPhotosGrid();
+      showScreen('eventDetail');
+    }
+
+    // Render photos grid
+    function renderPhotosGrid() {
+      const photos = getPhotos(currentEventId);
+      currentPhotos = photos;
+      
+      const grid = document.getElementById('photos-grid');
+      const noPhotos = document.getElementById('no-photos');
+      
+      document.getElementById('event-photo-count').innerHTML = `
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        ${photos.length} photo${photos.length !== 1 ? 's' : ''}
+      `;
+      
+      if (photos.length === 0) {
+        grid.innerHTML = '';
+        noPhotos.classList.remove('hidden');
+        return;
+      }
+      
+      noPhotos.classList.add('hidden');
+      
+      grid.innerHTML = photos.map((photo, index) => `
+        <div class="photo-item" data-index="${index}">
+          <img src="${photo.photo_url}" alt="${photo.photo_name || 'Photo'}" loading="lazy" 
+               onerror="this.style.background='#374151'; this.alt='Image non disponible';">
+          <div class="absolute inset-0 bg-black/0 hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
+            <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
+            </svg>
+          </div>
+        </div>
+      `).join('');
+      
+      // Add click handlers
+      document.querySelectorAll('.photo-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const index = parseInt(item.dataset.index);
+          openPhotoViewer(index);
+        });
+      });
+    }
+
+    // Photo viewer
+    function openPhotoViewer(index) {
+      currentPhotoIndex = index;
+      updatePhotoViewer();
+      document.getElementById('photo-viewer').classList.remove('hidden');
+      
+      // Show/hide admin controls
+      document.querySelectorAll('.admin-only').forEach(el => {
+        el.classList.toggle('hidden', !isAdmin);
+      });
+    }
+
+    function updatePhotoViewer() {
+      const photo = currentPhotos[currentPhotoIndex];
+      if (photo) {
+        document.getElementById('viewer-image').src = photo.photo_url;
+      }
+    }
+
+    function closePhotoViewer() {
+      document.getElementById('photo-viewer').classList.add('hidden');
+    }
+
+    // Handle photo upload
+    async function handlePhotoUpload(files) {
+      if (!currentEventId) return;
+      
+      // Filter image files
+      const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+      
+      if (imageFiles.length === 0) {
+        showToast('Aucun fichier image sélectionné', 'error');
+        return;
+      }
+      
+      // Check data limit
+      if (allData.length + imageFiles.length >= 999) {
+        showToast('Limite de stockage atteinte (999 éléments max)', 'error');
+        return;
+      }
+      
+      // Process each file sequentially
+      for (const file of imageFiles) {
+        // Check file size (limit to 2MB for Base64 storage)
+        if (file.size > 2 * 1024 * 1024) {
+          showToast(`${file.name} est trop volumineux (max 2MB)`, 'error');
+          continue;
+        }
+        
+        try {
+          // Convert to Base64
+          const base64 = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error('Erreur lecture'));
+            reader.readAsDataURL(file);
+          });
+          
+          const photoData = {
+            type: 'photo',
+            event_id: currentEventId,
+            photo_url: base64,
+            photo_name: file.name,
+            created_at: new Date().toISOString()
+          };
+          
+          const result = await window.dataSdk.create(photoData);
+          if (result.isOk) {
+            showToast(`${file.name} ajoutée !`);
+          } else {
+            showToast(`Erreur pour ${file.name}`, 'error');
+          }
+        } catch (err) {
+          showToast(`Erreur pour ${file.name}`, 'error');
+        }
+      }
+    }
+
+    // Public gallery
+    function openPublicGallery(eventId) {
+      const event = getEvents().find(e => e.event_id === eventId);
+      
+      if (!event) {
+        showToast('Événement non trouvé', 'error');
+        return;
+      }
+      
+      currentEventId = eventId;
+      currentPhotos = getPhotos(eventId);
+      
+      document.getElementById('public-event-title').textContent = event.event_name;
+      document.getElementById('public-event-date').textContent = formatDate(event.event_date);
+      document.getElementById('public-event-description').textContent = event.event_description || '';
+      document.getElementById('public-event-count').textContent = `${currentPhotos.length} photo${currentPhotos.length !== 1 ? 's' : ''} disponible${currentPhotos.length !== 1 ? 's' : ''}`;
+      
+      const grid = document.getElementById('public-photos-grid');
+      const noPhotos = document.getElementById('public-no-photos');
+      
+      if (currentPhotos.length === 0) {
+        grid.innerHTML = '';
+        noPhotos.classList.remove('hidden');
+      } else {
+        noPhotos.classList.add('hidden');
+        grid.innerHTML = currentPhotos.map((photo, index) => `
+          <div class="photo-item" data-index="${index}">
+            <img src="${photo.photo_url}" alt="${photo.photo_name || 'Photo'}" loading="lazy"
+                 onerror="this.style.background='#374151'; this.alt='Image non disponible';">
+            <div class="absolute inset-0 bg-black/0 hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
+              <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"/>
+              </svg>
+            </div>
+          </div>
+        `).join('');
+        
+        document.querySelectorAll('#public-photos-grid .photo-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const index = parseInt(item.dataset.index);
+            openPhotoViewer(index);
+          });
+        });
+      }
+      
+      showScreen('publicGallery');
+    }
+
+    // Copy share link
+    function copyShareLink() {
+      const event = getEvents().find(e => e.event_id === currentEventId);
+      if (!event) return;
+      
+      // Generate a shareable link (simulated)
+      const baseUrl = window.location.origin + window.location.pathname;
+      const shareLink = `${baseUrl}?event=${currentEventId}`;
+      
+      navigator.clipboard.writeText(shareLink).then(() => {
+        showToast('Lien copié ! Partagez-le sur WhatsApp');
+      }).catch(() => {
+        showToast('Impossible de copier le lien', 'error');
+      });
+    }
+
+    // Download photo
+    function downloadCurrentPhoto() {
+      const photo = currentPhotos[currentPhotoIndex];
+      if (!photo) return;
+      
+      const link = document.createElement('a');
+      link.href = photo.photo_url;
+      link.download = photo.photo_name || 'photo.jpg';
+      link.click();
+      showToast('Téléchargement en cours...');
+    }
+
+    // Delete confirmation
+    function showDeleteConfirm(type, target) {
+      deleteTarget = { type, target };
+      const message = type === 'event' 
+        ? 'Êtes-vous sûr de vouloir supprimer cet événement et toutes ses photos ?'
+        : 'Êtes-vous sûr de vouloir supprimer cette photo ?';
+      document.getElementById('delete-message').textContent = message;
+      document.getElementById('delete-confirm').classList.remove('hidden');
+    }
+
+    async function executeDelete() {
+      if (!deleteTarget) return;
+      
+      const spinner = document.getElementById('delete-spinner');
+      const btn = document.getElementById('confirm-delete');
+      spinner.classList.remove('hidden');
+      btn.disabled = true;
+      
+      if (deleteTarget.type === 'event') {
+        const event = getEvents().find(e => e.event_id === deleteTarget.target);
+        const photos = getPhotos(deleteTarget.target);
+        
+        // Delete all photos first
+        for (const photo of photos) {
+          await window.dataSdk.delete(photo);
+        }
+        
+        // Delete event
+        if (event) {
+          const result = await window.dataSdk.delete(event);
+          if (result.isOk) {
+            showToast('Événement supprimé');
+            showScreen('admin');
+          } else {
+            showToast('Erreur lors de la suppression', 'error');
+          }
+        }
+      } else if (deleteTarget.type === 'photo') {
+        const photo = currentPhotos[deleteTarget.target];
+        if (photo) {
+          const result = await window.dataSdk.delete(photo);
+          if (result.isOk) {
+            showToast('Photo supprimée');
+            closePhotoViewer();
+            renderPhotosGrid();
+          } else {
+            showToast('Erreur lors de la suppression', 'error');
+          }
+        }
+      }
+      
+      spinner.classList.add('hidden');
+      btn.disabled = false;
+      document.getElementById('delete-confirm').classList.add('hidden');
+      deleteTarget = null;
+    }
+
+    // Apply configuration to UI
+    function applyConfig() {
+      document.getElementById('login-title').textContent = config.app_title || defaultConfig.app_title;
+      document.getElementById('admin-title').textContent = config.app_title || defaultConfig.app_title;
+      document.getElementById('public-title').textContent = config.app_title || defaultConfig.app_title;
+      document.getElementById('admin-footer').textContent = config.footer_text || defaultConfig.footer_text;
+      document.getElementById('public-footer').textContent = config.footer_text || defaultConfig.footer_text;
+    }
+
+    // Data handler for SDK
+    const dataHandler = {
+      onDataChanged(data) {
+        allData = data;
+        updateStats();
+        
+        if (!screens.admin.classList.contains('hidden')) {
+          const searchValue = document.getElementById('search-events').value;
+          renderEventsList(searchValue);
+        }
+        
+        if (!screens.eventDetail.classList.contains('hidden') && currentEventId) {
+          renderPhotosGrid();
+        }
+        
+        if (!screens.publicGallery.classList.contains('hidden') && currentEventId) {
+          currentPhotos = getPhotos(currentEventId);
+          const event = getEvents().find(e => e.event_id === currentEventId);
+          if (event) {
+            document.getElementById('public-event-count').textContent = 
+              `${currentPhotos.length} photo${currentPhotos.length !== 1 ? 's' : ''} disponible${currentPhotos.length !== 1 ? 's' : ''}`;
+          }
+        }
+      }
+    };
+
+    // Element SDK handler
+    async function onConfigChange(newConfig) {
+      config = { ...config, ...newConfig };
+      applyConfig();
+    }
+
+    function mapToCapabilities(config) {
+      return {
+        recolorables: [
+          {
+            get: () => config.background_color || defaultConfig.background_color,
+            set: (value) => window.elementSdk.setConfig({ background_color: value })
+          },
+          {
+            get: () => config.surface_color || defaultConfig.surface_color,
+            set: (value) => window.elementSdk.setConfig({ surface_color: value })
+          },
+          {
+            get: () => config.text_color || defaultConfig.text_color,
+            set: (value) => window.elementSdk.setConfig({ text_color: value })
+          },
+          {
+            get: () => config.primary_color || defaultConfig.primary_color,
+            set: (value) => window.elementSdk.setConfig({ primary_color: value })
+          },
+          {
+            get: () => config.secondary_color || defaultConfig.secondary_color,
+            set: (value) => window.elementSdk.setConfig({ secondary_color: value })
+          }
+        ],
+        borderables: [],
+        fontEditable: {
+          get: () => config.font_family || defaultConfig.font_family,
+          set: (value) => window.elementSdk.setConfig({ font_family: value })
+        },
+        fontSizeable: {
+          get: () => config.font_size || defaultConfig.font_size,
+          set: (value) => window.elementSdk.setConfig({ font_size: value })
+        }
+      };
+    }
+
+    function mapToEditPanelValues(config) {
+      return new Map([
+        ['app_title', config.app_title || defaultConfig.app_title],
+        ['welcome_text', config.welcome_text || defaultConfig.welcome_text],
+        ['footer_text', config.footer_text || defaultConfig.footer_text]
+      ]);
+    }
+
+    // Initialize
+    async function init() {
+      // Initialize Element SDK
+      if (window.elementSdk) {
+        window.elementSdk.init({
+          defaultConfig,
+          onConfigChange,
+          mapToCapabilities,
+          mapToEditPanelValues
+        });
+      }
+      
+      // Initialize Data SDK
+      if (window.dataSdk) {
+        await window.dataSdk.init(dataHandler);
+      }
+      
+      // Check URL for event parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      const eventParam = urlParams.get('event');
+      
+      if (eventParam) {
+        // Public access mode
+        setTimeout(() => {
+          if (getEvents().find(e => e.event_id === eventParam)) {
+            openPublicGallery(eventParam);
+          } else {
+            showScreen('login');
+          }
+        }, 500);
+      } else {
+        showScreen('login');
+      }
+      
+      applyConfig();
+      setupEventListeners();
+    }
+
+    function setupEventListeners() {
+      // Login form
+      document.getElementById('login-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const password = document.getElementById('admin-password').value;
+        
+        if (password === ADMIN_PASSWORD) {
+          isAdmin = true;
+          showScreen('admin');
+          renderEventsList();
+        } else {
+          document.getElementById('login-error').classList.remove('hidden');
+          setTimeout(() => {
+            document.getElementById('login-error').classList.add('hidden');
+          }, 3000);
+        }
+      });
+      
+      // Logout
+      document.getElementById('logout-btn').addEventListener('click', () => {
+        isAdmin = false;
+        document.getElementById('admin-password').value = '';
+        showScreen('login');
+      });
+      
+      // Go to public gallery from login
+      document.getElementById('goto-public').addEventListener('click', () => {
+        const events = getEvents();
+        if (events.length > 0) {
+          openPublicGallery(events[0].event_id);
+        } else {
+          showToast('Aucun événement disponible', 'error');
+        }
+      });
+      
+      // Go to admin from public
+      document.getElementById('goto-admin').addEventListener('click', () => {
+        showScreen('login');
+      });
+      
+      // New event modal
+      document.getElementById('new-event-btn').addEventListener('click', () => {
+        document.getElementById('new-event-modal').classList.remove('hidden');
+      });
+      
+      document.getElementById('empty-new-event').addEventListener('click', () => {
+        document.getElementById('new-event-modal').classList.remove('hidden');
+      });
+      
+      document.getElementById('close-modal').addEventListener('click', () => {
+        document.getElementById('new-event-modal').classList.add('hidden');
+      });
+      
+      // Event form
+      document.getElementById('event-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (allData.length >= 999) {
+          showToast('Limite de stockage atteinte (999 éléments max)', 'error');
+          return;
+        }
+        
+        const spinner = document.getElementById('submit-spinner');
+        const btn = document.getElementById('submit-event');
+        spinner.classList.remove('hidden');
+        btn.disabled = true;
+        
+        const eventData = {
+          type: 'event',
+          event_id: generateId(),
+          event_name: document.getElementById('event-name-input').value,
+          event_date: document.getElementById('event-date-input').value,
+          event_description: document.getElementById('event-desc-input').value,
+          created_at: new Date().toISOString()
+        };
+        
+        const result = await window.dataSdk.create(eventData);
+        
+        spinner.classList.add('hidden');
+        btn.disabled = false;
+        
+        if (result.isOk) {
+          showToast('Événement créé !');
+          document.getElementById('event-form').reset();
+          document.getElementById('new-event-modal').classList.add('hidden');
+          openEventDetail(eventData.event_id);
+        } else {
+          showToast('Erreur lors de la création', 'error');
+        }
+      });
+      
+      // Search events
+      document.getElementById('search-events').addEventListener('input', (e) => {
+        renderEventsList(e.target.value);
+      });
+      
+      // Filter by date
+      document.getElementById('filter-date').addEventListener('change', () => {
+        const searchValue = document.getElementById('search-events').value;
+        renderEventsList(searchValue);
+      });
+      
+      // Back to dashboard
+      document.getElementById('back-to-dashboard').addEventListener('click', () => {
+        showScreen('admin');
+        currentEventId = null;
+      });
+      
+      // Copy link
+      document.getElementById('copy-link-btn').addEventListener('click', copyShareLink);
+      
+      // Delete event
+      document.getElementById('delete-event-btn').addEventListener('click', () => {
+        showDeleteConfirm('event', currentEventId);
+      });
+      
+      // Photo upload
+      const uploadZone = document.querySelector('.upload-zone');
+      const uploadInput = document.getElementById('photo-upload');
+      
+      uploadZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadZone.classList.add('dragover');
+      });
+      
+      uploadZone.addEventListener('dragleave', () => {
+        uploadZone.classList.remove('dragover');
+      });
+      
+      uploadZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length > 0) {
+          handlePhotoUpload(e.dataTransfer.files);
+        }
+      });
+      
+      uploadInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          handlePhotoUpload(e.target.files);
+          uploadInput.value = '';
+        }
+      });
+      
+      // Photo viewer controls
+      document.getElementById('close-viewer').addEventListener('click', closePhotoViewer);
+      
+      document.getElementById('prev-photo').addEventListener('click', () => {
+        currentPhotoIndex = (currentPhotoIndex - 1 + currentPhotos.length) % currentPhotos.length;
+        updatePhotoViewer();
+      });
+      
+      document.getElementById('next-photo').addEventListener('click', () => {
+        currentPhotoIndex = (currentPhotoIndex + 1) % currentPhotos.length;
+        updatePhotoViewer();
+      });
+      
+      document.getElementById('download-photo').addEventListener('click', downloadCurrentPhoto);
+      
+      document.getElementById('delete-photo').addEventListener('click', () => {
+        showDeleteConfirm('photo', currentPhotoIndex);
+      });
+      
+      // Keyboard navigation
+      document.addEventListener('keydown', (e) => {
+        const viewer = document.getElementById('photo-viewer');
+        if (!viewer.classList.contains('hidden')) {
+          if (e.key === 'Escape') closePhotoViewer();
+          if (e.key === 'ArrowLeft') {
+            currentPhotoIndex = (currentPhotoIndex - 1 + currentPhotos.length) % currentPhotos.length;
+            updatePhotoViewer();
+          }
+          if (e.key === 'ArrowRight') {
+            currentPhotoIndex = (currentPhotoIndex + 1) % currentPhotos.length;
+            updatePhotoViewer();
+          }
+        }
+      });
+      
+      // Delete confirmation
+      document.getElementById('cancel-delete').addEventListener('click', () => {
+        document.getElementById('delete-confirm').classList.add('hidden');
+        deleteTarget = null;
+      });
+      
+      document.getElementById('confirm-delete').addEventListener('click', executeDelete);
+    }
+
+    // Start the app
+    init();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9ca2dd1700ba65a1',t:'MTc3MDQ2NzA2MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
